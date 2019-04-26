@@ -1,0 +1,83 @@
+###################  项目启动端口  ###################
+server:
+  port: 8095
+################### eureka #################################
+eureka:
+  instance:
+    preferIpAddress: true
+  server:
+    enableSelfPreservation: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://10.8.29.89:30000/eureka/
+###################  spring配置  ###################
+spring:
+  application:
+    name: zhiyuanhui-adapter
+  ######################  stream  #######################
+  cloud:
+    instance-count: 1
+    instance-index: 0
+    stream:
+      kafka:
+        binder:
+          brokers: 10.8.29.91:9092,10.8.29.95:9092,10.8.29.99:9092
+          #zk-nodes: 10.8.29.90:6789,10.8.29.94:6789,10.8.29.98:6789
+          auto-add-partitions: true
+          auto-create-topics: true
+          min-partition-count: 1
+      bindings:
+        OUTPUT1:
+          destination: AlarmPasserTopic
+          content-type: application/json
+          producer:
+            partitionCount: 1
+        OUTPUT2:
+          destination: SpecialPasserTopic
+          content-type: application/json
+          producer:
+            partitionCount: 1
+        OUTPUT3:
+          destination: BucketRawImage
+          content-type: application/json
+        OUTPUT4:
+          destination: FaceRawEvent
+          content-type: application/json
+        INPUT1:
+          destination: AlarmPasserTopic
+          group: groupA
+        INPUT2:
+          destination: SpecialPasserTopic
+          group: groupA
+        INPUT3:
+          destination: BucketRawImage
+          group: groupA
+        INPUT4:
+          destination: FaceRawEvent
+          group: groupA
+####################### mybatis-plus #####################
+  datasource:
+    # 使用druid数据源
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://10.8.29.93:30306/device?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+    username: root
+    password: root
+    filters: stat
+    maxActive: 20
+    initialSize: 1
+    maxWait: 60000
+    minIdle: 1
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: select 1 FROM DUAL
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+
+
+
+

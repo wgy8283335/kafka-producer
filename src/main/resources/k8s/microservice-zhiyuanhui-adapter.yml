@@ -1,0 +1,230 @@
+apiVersion: v1
+kind: Deployment
+apiVersion: apps/v1beta2
+metadata:
+  labels:
+    app: zhiyuanhui-adapter
+    type: microservice
+  name: zhiyuanhui-adapter
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: zhiyuanhui-adapter
+  template:
+    metadata:
+      labels:
+        app: zhiyuanhui-adapter
+        type: microservice
+    spec:
+      serviceAccountName: my-admin
+      initContainers:
+      - name: wait-for-mysql-master-ready
+        image: giantswarm/tiny-tools
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NAMESPACES
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ENDPOINTS
+          value: "mysql-master"
+        - name: READYCOUNT
+          value: "1"
+        - name: UNREADYCOUNT
+          value: "0"
+        command:
+          - fish
+          - -c
+          - " echo \"waiting for endpoints...\";
+              while true; 
+                  set endpoints (
+                      curl -s --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt --header \"Authorization: Bearer \"(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
+                          https://kubernetes.default.svc/api/v1/namespaces/{$NAMESPACES}/endpoints/{$ENDPOINTS}
+                  );
+                  echo $endpoints | jq \".\"; 
+                  if test (echo $endpoints | jq -r \".subsets[]?.addresses // [] | length\") -ge {$READYCOUNT}; 
+                      if test (echo $endpoints | jq -r \".subsets[]?.notReadyAddresses // [] | length\") -le {$UNREADYCOUNT}; 
+                          echo \"endpoints(count:{$READYCOUNT}) are all ready, now starting....\";
+                          exit 0; 
+                      end;
+                  end;
+                  echo \"it's not ready, waiting ...\";
+                  sleep 3; 
+              end;
+            "
+      containers:
+      - name: zhiyuanhui-adapter
+        image: java
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: port
+          containerPort: 3222
+        resources:
+          requests:
+            memory: "2048Mi"
+        command:
+          - java
+          - -Xms256m
+          - -Xmx2048m
+          - -jar
+          - -Dspring.config.location=/springconfig/zhiyuanhui-adapter.yml
+          - -Dspring.profiles.include=swagger
+          - -Duser.timezone=Asia/Shanghai
+          - /executive/jars/zhiyuanhui-adapter.jar
+        readinessProbe:
+          httpGet:
+            path: /actuator/info
+            port: 8095
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+          periodSeconds: 60
+        livenessProbe:
+          httpGet:
+            path: /actuator/info
+            port: 8095
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+          periodSeconds: 60
+        volumeMounts:
+          - name: executive
+            mountPath: /executive
+          - name: configmap
+            mountPath: /springconfig
+          - name: host-time
+            mountPath: /etc/localtime
+          - name: images
+            mountPath: /images
+      volumes:
+      - name: host-time
+        hostPath:
+          path: /etc/localtime
+      - name: executive
+        cephfs:
+          monitors:
+          - 10.8.29.90:6789
+          - 10.8.29.94:6789
+          - 10.8.29.98:6789
+          user: admin
+          path: /executive
+          secretRef:
+            name: ceph-admin-secret
+      - name: images
+        cephfs:
+          monitors:
+          - 10.8.29.90:6789
+          - 10.8.29.94:6789
+          - 10.8.29.98:6789
+          user: admin
+          path: /images
+          secretRef:
+            name: ceph-admin-secret
+      - name: configmap
+        configMap:
+          name: zhiyuanhui-adapter-service-config
+---
+kind: ConfigMap
+metadata:
+  name: zhiyuanhui-adapter-service-config
+  namespace: default
+apiVersion: v1
+data:
+  #######################???????ConfigMap????????ConfigMap?????ConfigMap????ConfigMap???????###############################
+  zhiyuanhui-adapter.yml:
+    ###################  项目启动端口  ###################
+    server:
+      port: 8095
+    ###################  spring配置  ###################
+    spring:
+      application:
+        name: zhiyuanhui-adapter
+      datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://mysql-master.default.svc.cluster.local:3306/senseface_adapter?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
+        username: root
+        password: root
+    eureka:
+      instance:
+        preferIpAddress: true
+      server:
+        enableSelfPreservation: true
+      client:
+        registerWithEureka: true
+        fetchRegistry: true
+        serviceUrl:
+          defaultZone: http://eureka-external.default.svc.cluster.local:8761/eureka/
+
+      ######################  stream  #######################
+      cloud:
+        instance-count: 1
+        instance-index: 0
+        stream:
+          kafka:
+            binder:
+              brokers: kafka.default.svc.cluster.local:9092
+              #zk-nodes: 10.8.29.90:6789,10.8.29.94:6789,10.8.29.98:6789
+              auto-add-partitions: true
+              auto-create-topics: true
+              min-partition-count: 1
+          bindings:
+            OUTPUT1:
+              destination: AlarmPasserTopic
+              content-type: application/json
+              producer:
+                partitionCount: 1
+            OUTPUT2:
+              destination: SpecialPasserTopic
+              content-type: application/json
+              producer:
+                partitionCount: 1
+            OUTPUT3:
+              destination: BucketRawImage
+              content-type: application/json
+            OUTPUT4:
+              destination: FaceRawEvent
+              content-type: application/json
+            INPUT1:
+              destination: AlarmPasserTopic
+              group: groupA
+            INPUT2:
+              destination: SpecialPasserTopic
+              group: groupA
+            INPUT3:
+              destination: BucketRawImage
+              group: groupA
+            INPUT4:
+              destination: FaceRawEvent
+              group: groupA
+    ####################### mybatis-plus #####################
+    #  datasource:
+    #    # 使用druid数据源
+    #    type: com.alibaba.druid.pool.DruidDataSource
+    #    driver-class-name: com.mysql.jdbc.Driver
+    #    url: jdbc:mysql://mysql-master.default.svc.cluster.local:3306/passengers?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+    #    username: root
+    #    password: root
+    #    filters: stat
+    #    maxActive: 20
+    #    initialSize: 1
+    #    maxWait: 60000
+    #    minIdle: 1
+    #    timeBetweenEvictionRunsMillis: 60000
+    #    minEvictableIdleTimeMillis: 300000
+    #    validationQuery: select 1 FROM DUAL
+    #    testWhileIdle: true
+    #    testOnBorrow: false
+    #    testOnReturn: false
+    #    poolPreparedStatements: true

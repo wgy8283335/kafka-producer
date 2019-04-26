@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sensetime.generator.mapper.DeviceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sensetime.generator.entity.Device">
+        <id column="uuid" property="uuid" />
+        <result column="device_serial_no" property="deviceSerialNo" />
+        <result column="device_secret" property="deviceSecret" />
+        <result column="device_cn_name" property="deviceCnName" />
+        <result column="device_en_name" property="deviceEnName" />
+        <result column="device_port" property="devicePort" />
+        <result column="device_ip" property="deviceIp" />
+        <result column="device_uri" property="deviceUri" />
+        <result column="device_version" property="deviceVersion" />
+        <result column="device_conn_type" property="deviceConnType" />
+        <result column="device_protocol" property="deviceProtocol" />
+        <result column="last_checked_ts" property="lastCheckedTs" />
+        <result column="product_typeuuid" property="productTypeuuid" />
+        <result column="device_typeuuid" property="deviceTypeuuid" />
+        <result column="device_tag" property="deviceTag" />
+        <result column="matching_threshold" property="matchingThreshold" />
+        <result column="description" property="description" />
+        <result column="sts" property="sts" />
+        <result column="create_user" property="createUser" />
+        <result column="create_ts" property="createTs" />
+        <result column="last_mod_user" property="lastModUser" />
+        <result column="last_mod_ts" property="lastModTs" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        uuid, device_serial_no, device_secret, device_cn_name, device_en_name, device_port, device_ip, device_uri, device_version, device_conn_type, device_protocol, last_checked_ts, product_typeuuid, device_typeuuid, device_tag, matching_threshold, description, sts, create_user, create_ts, last_mod_user, last_mod_ts
+    </sql>
+
+</mapper>
