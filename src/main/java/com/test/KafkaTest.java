@@ -20,7 +20,8 @@ public class KafkaTest extends Thread {
     public KafkaTest(String topicName){
         // 配置信息
         Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "10.8.29.91:9092");
+        //kafkaProps.put("bootstrap.servers", "192.168.1.158:32400,192.168.1.158:32401,193.168.1.158:32402");
+        kafkaProps.put("bootstrap.servers", "192.168.1.154:9092");
         kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         producer = new KafkaProducer<>(kafkaProps);
@@ -103,7 +104,7 @@ public class KafkaTest extends Thread {
                      "    \"accountForIp\": \"admin\",\n" +
                      "    \"createTime\": 1554983993736,\n" +
                      "    \"deviceId\": \"42a20f7c3d5547bd9676f1a6e9356436\",\n" +
-                     "    \"deviceIp\": \"10.8.29.171\",\n" +
+                     "    \"deviceIp\": \"192.168.1.109\",\n" +
                      "    \"deviceSerialNumber\": \"C100101D0C40201\",\n" +
                      "    \"id\": 29,\n" +
                      "    \"isDeleted\": false,\n" +
@@ -125,7 +126,7 @@ public class KafkaTest extends Thread {
                     "    \"accountForIp\": \"admin\",\n" +
                     "    \"createTime\": 1554983993736,\n" +
                     "    \"deviceId\": \"52a20f7c3d5547bd9676f1a6e9356436\",\n" +
-                    "    \"deviceIp\": \"10.8.29.174\",\n" +
+                    "    \"deviceIp\": \"192.168.1.110\",\n" +
                     "    \"deviceSerialNumber\": \"C100101D0C40202\",\n" +
                     "    \"id\": 30,\n" +
                     "    \"isDeleted\": false,\n" +
@@ -146,7 +147,7 @@ public class KafkaTest extends Thread {
                     "    \"accountForIp\": \"admin\",\n" +
                     "    \"createTime\": 1554983993736,\n" +
                     "    \"deviceId\": \"62a20f7c3d5547bd9676f1a6e9356436\",\n" +
-                    "    \"deviceIp\": \"10.8.29.172\",\n" +
+                    "    \"deviceIp\": \"192.168.1.108\",\n" +
                     "    \"deviceSerialNumber\": \"C100101D0C40203\",\n" +
                     "    \"id\": 31,\n" +
                     "    \"isDeleted\": false,\n" +
@@ -309,26 +310,26 @@ public class KafkaTest extends Thread {
                     "}";
             //构造消息记录
             ProducerRecord<String,String> record1 = new ProducerRecord<>(topic,taskMessage1);
-            ProducerRecord<String,String> record2 = new ProducerRecord<>(topic,taskMessage2);
-            ProducerRecord<String,String> record3 = new ProducerRecord<>(topic,taskMessage3);
-            ProducerRecord<String,String> record4 = new ProducerRecord<>(topic,taskMessage4);
-            ProducerRecord<String,String> record5 = new ProducerRecord<>(topic,taskMessage5);
-            ProducerRecord<String,String> record6 = new ProducerRecord<>(topic,taskMessage6);
-            ProducerRecord<String,String> record7 = new ProducerRecord<>(topic,taskMessage7);
-            ProducerRecord<String,String> record8 = new ProducerRecord<>(topic,taskMessage8);
-            ProducerRecord<String,String> record9 = new ProducerRecord<>(topic,taskMessage9);
-            ProducerRecord<String,String> record10 = new ProducerRecord<>(topic,taskMessage10);
+//            ProducerRecord<String,String> record2 = new ProducerRecord<>(topic,taskMessage2);
+//            ProducerRecord<String,String> record3 = new ProducerRecord<>(topic,taskMessage3);
+//            ProducerRecord<String,String> record4 = new ProducerRecord<>(topic,taskMessage4);
+//            ProducerRecord<String,String> record5 = new ProducerRecord<>(topic,taskMessage5);
+//            ProducerRecord<String,String> record6 = new ProducerRecord<>(topic,taskMessage6);
+//            ProducerRecord<String,String> record7 = new ProducerRecord<>(topic,taskMessage7);
+//            ProducerRecord<String,String> record8 = new ProducerRecord<>(topic,taskMessage8);
+//            ProducerRecord<String,String> record9 = new ProducerRecord<>(topic,taskMessage9);
+//            ProducerRecord<String,String> record10 = new ProducerRecord<>(topic,taskMessage10);
             //发送
             producer.send(record1);
-            producer.send(record2);
-            producer.send(record3);
-            producer.send(record4);
-            producer.send(record5);
-            producer.send(record6);
-            producer.send(record7);
-            producer.send(record8);
-            producer.send(record9);
-            producer.send(record10);
+//            producer.send(record2);
+//            producer.send(record3);
+//            producer.send(record4);
+//            producer.send(record5);
+//            producer.send(record6);
+//            producer.send(record7);
+//            producer.send(record8);
+//            producer.send(record9);
+//            producer.send(record10);
             //累加
             messageNo++;
         }
